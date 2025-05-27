@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>自动番号获取</title>
+    <style>
+        body { margin: 10px; }
+        textarea { width: 480px; height: 100%; }
+        .btn-group { margin-top: 10px; width: 100%; display: flex; gap: 10px; }
+        button { flex: 1; }
+    </style>
+</head>
+<body>
+   
+    <div class="btn-group">
+        <button id="get-fhao-btn">获取番号</button>
+        <button id="get-magnet-btn">获取磁力链接</button>
+        <button id="copy-btn">全选并复制</button>
+    </div>
+  
+    <textarea id="fhao-textarea" readonly placeholder="这里提取到的番号或磁力链接"></textarea>
+    <script src="popup.js"></script>
+</body>
+</html> 
