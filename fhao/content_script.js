@@ -1,3 +1,44 @@
+function getPageUrl(page) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('p', page);
+    return url.toString();
+}
+
+// 添加页面加载完成后的处理
+window.addEventListener('load', () => {
+    // 检查URL中是否包含目标页码
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetPage = urlParams.get('p');
+    
+    if (targetPage) {
+        console.log('Page loaded, target page:', targetPage);
+        // 等待页面内容加载完成
+        setTimeout(() => {
+            // 获取磁力链接
+            const links = Array.from(document.querySelectorAll('a[href^="magnet:"]'));
+            const hrefMagnets = links.map(link => link.href);
+            const bodyText = document.body.innerText;
+            const regex = /magnet:\?xt=urn:btih:[0-9a-zA-Z]{32,64}\S*/g;
+            const textMagnets = bodyText.match(regex) || [];
+            const magnets = Array.from(new Set([...hrefMagnets, ...textMagnets]))
+                .map(magnet => {
+                    const match = magnet.match(/magnet:\?xt=urn:btih:[0-9a-zA-Z]{32,64}/);
+                    return match ? match[0] : null;
+                })
+                .filter(Boolean);
+            
+            console.log('Magnets found on page', targetPage, ':', magnets);
+            
+            // 发送消息给popup
+            chrome.runtime.sendMessage({
+                action: "pageMagnetsLoaded",
+                page: parseInt(targetPage),
+                magnets: magnets
+            });
+        }, 3000);
+    }
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getFhao") {
         const bodyText = document.body.innerText;
@@ -27,5 +68,39 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log('磁力匹配结果:', magnets);
         sendResponse({ magnets });
     }
+    if (request.action === "gotoAndGetMagnet" && request.page) {
+        // 生成目标页URL
+        const targetUrl = getPageUrl(request.page);
+        console.log('Target URL:', targetUrl);
+        
+        if (window.location.href !== targetUrl) {
+            // 如果不在目标页，先跳转
+            window.location.href = targetUrl;
+            // 跳转后，content_script 会重新加载
+            // 不需要在这里发送响应，因为页面会重新加载
+        } else {
+            // 已在目标页，等待页面加载完成后抓取
+            setTimeout(() => {
+                // 复用 getMagnet 逻辑
+                const links = Array.from(document.querySelectorAll('a[href^="magnet:"]'));
+                const hrefMagnets = links.map(link => link.href);
+                const bodyText = document.body.innerText;
+                const regex = /magnet:\?xt=urn:btih:[0-9a-zA-Z]{32,64}\S*/g;
+                const textMagnets = bodyText.match(regex) || [];
+                const magnets = Array.from(new Set([...hrefMagnets, ...textMagnets]))
+                    .map(magnet => {
+                        const match = magnet.match(/magnet:\?xt=urn:btih:[0-9a-zA-Z]{32,64}/);
+                        return match ? match[0] : null;
+                    })
+                    .filter(Boolean);
+                console.log('Magnets found:', magnets);
+                sendResponse({ magnets });
+            }, 3000);
+        }
+    }
     return true; // 允许异步响应
 }); 
+
+
+
+

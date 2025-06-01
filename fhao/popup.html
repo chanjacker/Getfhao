@@ -17,8 +17,15 @@
         <button id="get-magnet-btn">获取磁力链接</button>
         <button id="copy-btn">全选并复制</button>
     </div>
-  
+    <div style="margin-top:10px; display:flex; gap:8px;">
+        <input id="startPage" type="number" min="1" value="1" placeholder="起始页" style="width:60px; padding:4px 8px;">
+        <input id="endPage" type="number" min="1" value="3" placeholder="结束页" style="width:60px; padding:4px 8px;">
+        <button id="batch-get-magnet-btn" style="flex:1;">批量获取磁力</button>
+        <button id="clear-btn" style="flex:1;">清空</button>
+    </div>
     <textarea id="fhao-textarea" readonly placeholder="这里提取到的番号或磁力链接"></textarea>
+    <div id="magnet-log" style="margin-top:10px; font-size:12px; max-height:120px; overflow-y:auto; border:1px solid #eee; padding:6px; border-radius:4px;"></div>
+  
     <script src="popup.js"></script>
 </body>
 </html> 
