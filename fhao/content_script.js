@@ -1,6 +1,12 @@
 function getPageUrl(page) {
     const url = new URL(window.location.href);
-    url.searchParams.set('p', page);
+    // 检查当前URL是否使用 'page' 参数
+    const currentPage = url.searchParams.get('page');
+    if (currentPage !== null) {
+        url.searchParams.set('page', page);
+    } else {
+        url.searchParams.set('p', page);
+    }
     return url.toString();
 }
 
@@ -8,7 +14,7 @@ function getPageUrl(page) {
 window.addEventListener('load', () => {
     // 检查URL中是否包含目标页码
     const urlParams = new URLSearchParams(window.location.search);
-    const targetPage = urlParams.get('p');
+    const targetPage = urlParams.get('p') || urlParams.get('page');
     
     if (targetPage) {
         console.log('Page loaded, target page:', targetPage);
