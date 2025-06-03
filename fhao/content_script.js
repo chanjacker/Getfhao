@@ -10,6 +10,12 @@ function getPageUrl(page) {
     return url.toString();
 }
 
+function convertFeatureCodeToMagnet(featureCode) {
+    // Remove any spaces and special characters
+    const cleanCode = featureCode.replace(/[【】\s：]/g, '');
+    return `magnet:?xt=urn:btih:${cleanCode}`;
+}
+
 // 添加页面加载完成后的处理
 window.addEventListener('load', () => {
     // 检查URL中是否包含目标页码
@@ -64,12 +70,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const textMagnets = bodyText.match(regex) || [];
     
         // 3. 合并去重并只保留哈希部分
-        const magnets = Array.from(new Set([...hrefMagnets, ...textMagnets]))
+        let magnets = Array.from(new Set([...hrefMagnets, ...textMagnets]))
             .map(magnet => {
                 const match = magnet.match(/magnet:\?xt=urn:btih:[0-9a-zA-Z]{32,64}/);
                 return match ? match[0] : null;
             })
             .filter(Boolean);
+        if (magnets.length === 0) {
+            // 匹配特徵碼格式
+            const featureCodeRegex = /【特\s*徵\s*碼\s*】：([0-9a-fA-F]{32,64})/g;
+            const featureCodes = [...bodyText.matchAll(featureCodeRegex)].map(match => convertFeatureCodeToMagnet(match[1]));
+            
+            magnets = Array.from(new Set([...hrefMagnets, ...textMagnets, ...featureCodes]))
+                .map(magnet => {
+                    const match = magnet.match(/magnet:\?xt=urn:btih:[0-9a-zA-Z]{32,64}/);
+                    return match ? match[0] : null;
+                })
+                .filter(Boolean);
+        }
     
         console.log('磁力匹配结果:', magnets);
         sendResponse({ magnets });
